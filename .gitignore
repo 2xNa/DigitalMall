@@ -36,3 +36,7 @@ Thumbs.db
 .env
 .env.local
 .env.production
+
+# Temp log files
+*_log_*.md
+upload_complete_*.md

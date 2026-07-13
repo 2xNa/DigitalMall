@@ -61,35 +61,39 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 4️⃣ 数据库迁移
+> ⚠️ Windows 中文系统如果报编码错误，先执行 `$env:PYTHONIOENCODING='utf-8'` 再重试。
+
+### 4️⃣ 配置环境变量
+
+```bash
+# 复制环境变量模板（首次必须执行）
+copy .env.example .env      # Windows
+cp .env.example .env         # macOS / Linux
+```
+
+> 编辑 `.env` 文件，填入你自己的 SECRET_KEY 和智谱 AI API Key（可选，不填则使用关键词兜底回复）。
+
+### 5️⃣ 数据库迁移
 
 ```bash
 python manage.py migrate
 ```
 
-### 5️⃣ 填充测试数据
+### 6️⃣ 生成商品占位图
+
+```bash
+python generate_placeholders.py
+```
+
+> 自动在 `media/products/` 下生成 30 张版权安全的占位图。
+
+### 7️⃣ 填充测试数据
 
 ```bash
 python fill_data.py
 ```
 
-### 6️⃣ 配置 AI 导购（可选）
-
-将 `DigitalMall/settings.py` 中的 API Key 替换为您自己的智谱 AI Key：
-
-```python
-# settings.py
-CHATBOT_API_KEY = 'your_api_key_here'
-```
-
-或在项目根目录创建 `.env` 文件：
-
-```env
-DJANGO_CHATBOT_API_KEY=your_api_key_here
-DJANGO_SECRET_KEY=your_secret_key_here
-```
-
-### 7️⃣ 启动开发服务器
+### 8️⃣ 启动开发服务器
 
 ```bash
 python manage.py runserver
