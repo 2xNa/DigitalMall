@@ -1,6 +1,6 @@
 # DigitalMall 数码潮品商城
 
-Python 课程大作业。基于 Django 6.0 的数码产品电商网站，赛博朋克风格 UI，集成 AI 智能导购。
+Python 课程大作业。基于 Django 6.0 的数码产品电商网站，集成 AI 智能导购和关键词匹配。
 
 ## 功能
 
