@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load goods_tags %}
+
+{% block title %}数码潮品商城 - 首页{% endblock %}
+
+{% block content %}
+<!-- Hero Banner -->
+<section class="hero-section">
+    <div class="container">
+        <div class="row align-items-center min-vh-60">
+            <div class="col-lg-6">
+                <h1 class="hero-title">
+                    探索 <span class="gradient-text">未来科技</span><br>
+                    尽在 DigitalMall
+                </h1>
+                <p class="hero-subtitle">精选全球前沿数码产品，以最潮价格入手最新科技</p>
+                <div class="d-flex gap-3">
+                    <a href="#hot-products" class="btn btn-neon btn-lg">
+                        <i class="fas fa-fire"></i> 热销爆款
+                    </a>
+                    <a href="#new-products" class="btn btn-outline-neon btn-lg">
+                        <i class="fas fa-star"></i> 新品首发
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="hero-visual text-center">
+                    <i class="fas fa-headset hero-icon"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 分类导航 -->
+<section class="category-section">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title"><i class="fas fa-th-large"></i> 全部分类</h2>
+            <a href="{% url 'Goods:ProductSearchView' %}" class="view-all">查看全部 <i class="fas fa-arrow-right"></i></a>
+        </div>
+        <div class="row g-3">
+            {% for category in categories %}
+            <div class="col-4 col-md-3 col-lg-3">
+                <a href="{% url 'Goods:CategoryView' category.pk %}" class="category-card">
+                    <div class="category-icon"><i class="{{ category.CategoryIcon }}"></i></div>
+                    <span class="category-name">{{ category.CategoryName }}</span>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- 新品上市 -->
+<section class="new-section" id="new-products">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title"><i class="fas fa-star"></i> 新品上市</h2>
+            <a href="{% url 'Goods:ProductSearchView' %}?sort=new" class="view-all">查看更多 <i class="fas fa-arrow-right"></i></a>
+        </div>
+        <div class="row g-4">
+            {% for product in new_products %}
+            <div class="col-6 col-md-4 col-lg-3">
+                {% include 'Goods/components/product_card.html' with product=product badge='新品' badge_class='badge-new' %}
+            </div>
+            {% empty %}
+            <div class="col-12 text-center text-muted py-4">暂无新品</div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- 热销商品 -->
+<section class="hot-section" id="hot-products">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title"><i class="fas fa-fire"></i> 热销商品</h2>
+            <a href="{% url 'Goods:ProductSearchView' %}?sort=sales" class="view-all">查看更多 <i class="fas fa-arrow-right"></i></a>
+        </div>
+        <div class="row g-4">
+            {% for product in hot_products %}
+            <div class="col-6 col-md-4 col-lg-3">
+                {% include 'Goods/components/product_card.html' with product=product badge='热销' badge_class='badge-hot' %}
+            </div>
+            {% empty %}
+            <div class="col-12 text-center text-muted py-4">暂无热销商品</div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- 促销商品 -->
+<section class="sale-section">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title"><i class="fas fa-tags"></i> 限时促销</h2>
+        </div>
+        <div class="row g-4">
+            {% for product in sale_products %}
+            <div class="col-6 col-md-4 col-lg-3">
+                {% include 'Goods/components/product_card.html' with product=product %}
+            </div>
+            {% empty %}
+            <div class="col-12 text-center text-muted py-4">暂无促销商品</div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- 推荐商品 -->
+<section class="recommend-section">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title"><i class="fas fa-thumbs-up"></i> 为您推荐</h2>
+        </div>
+        <div class="row g-4">
+            {% for product in recommend_products %}
+            <div class="col-6 col-md-4 col-lg-3">
+                {% include 'Goods/components/product_card.html' with product=product badge='推荐' badge_class='badge-recommend' %}
+            </div>
+            {% empty %}
+            <div class="col-12 text-center text-muted py-4">暂无推荐商品</div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

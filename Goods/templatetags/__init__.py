@@ -1,0 +1,1 @@
+﻿# DigitalMall templatetags package

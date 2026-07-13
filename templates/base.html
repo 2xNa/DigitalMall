@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}数码潮品商城{% endblock %}</title>
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome 6 -->
+    <link href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <!-- 自定义样式 -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar navbar-expand-lg fixed-top">
+        <div class="container">
+            <a class="navbar-brand brand-logo" href="{% url 'Goods:IndexView' %}">
+                <i class="fas fa-bolt"></i> DigitalMall
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'Goods:IndexView' %}">
+                            <i class="fas fa-home"></i> 首页
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'ChatBot:ChatView' %}">
+                            <i class="fas fa-robot"></i> 智能导购
+                        </a>
+                    </li>
+                </ul>
+                <form class="nav-search me-3" action="{% url 'Goods:ProductSearchView' %}" method="GET">
+                    <input type="text" name="q" class="form-control" placeholder="搜索数码产品..." value="{{ keyword|default:'' }}">
+                    <button type="submit"><i class="fas fa-search"></i></button>
+                </form>
+                <ul class="navbar-nav">
+                    <li class="nav-item position-relative">
+                        <a class="nav-link" href="{% url 'Cart:CartView' %}">
+                            <i class="fas fa-shopping-cart"></i> 购物车
+                            {% with cart_count=request.user.cart_items.count %}
+                            {% if cart_count %}
+                            <span class="cart-badge">{{ cart_count }}</span>
+                            {% endif %}
+                            {% endwith %}
+                        </a>
+                    </li>
+                    {% if user.is_authenticated %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user-circle"></i> {{ user.username }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            {% if user.is_staff %}
+                            <li><a class="dropdown-item" href="/admin/" target="_blank"><i class="fas fa-cog"></i> 管理后台</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            {% endif %}
+                            <li><a class="dropdown-item" href="{% url 'Users:UserProfileView' %}"><i class="fas fa-id-card"></i> 个人中心</a></li>
+                            <li><a class="dropdown-item" href="{% url 'Order:OrderListView' %}"><i class="fas fa-list-alt"></i> 我的订单</a></li>
+                            <li><a class="dropdown-item" href="{% url 'Users:FavoriteListView' %}"><i class="fas fa-heart"></i> 我的收藏</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{% url 'Users:UserLogout' %}"><i class="fas fa-sign-out-alt"></i> 退出登录</a></li>
+                        </ul>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'Users:UserLogin' %}"><i class="fas fa-sign-in-alt"></i> 登录</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'Users:UserRegister' %}"><i class="fas fa-user-plus"></i> 注册</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主内容 -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <h5><i class="fas fa-bolt"></i> DigitalMall</h5>
+                    <p class="text-muted">数码潮品商城，为您精选最新最潮的数码产品。</p>
+                </div>
+                <div class="col-md-4">
+                    <h5>快速链接</h5>
+                    <ul class="footer-links">
+                        <li><a href="{% url 'Goods:IndexView' %}">首页</a></li>
+                        <li><a href="{% url 'ChatBot:ChatView' %}">智能导购</a></li>
+                        <li><a href="{% url 'Cart:CartView' %}">购物车</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h5>联系方式</h5>
+                    <ul class="footer-links">
+                        <li><i class="fas fa-envelope"></i> support@digitalmall.com</li>
+                        <li><i class="fas fa-phone"></i> 400-888-8888</li>
+                    </ul>
+                </div>
+            </div>
+            <hr>
+            <p class="text-center text-muted mb-0">&copy; 2026 DigitalMall 数码潮品商城. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- 浮动导购按钮 -->
+    <a href="{% url 'ChatBot:ChatView' %}" class="chatbot-float-btn">
+        <i class="fas fa-robot"></i>
+    </a>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+    <!-- 自定义脚本 -->
+    <script src="{% static 'js/main.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

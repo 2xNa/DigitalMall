@@ -1,0 +1,307 @@
+{% extends 'base.html' %}
+{% load goods_tags %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<section class="detail-page">
+    <div class="container">
+        <!-- 面包屑 -->
+        <nav aria-label="breadcrumb" class="mt-3">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'Goods:IndexView' %}">首页</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'Goods:CategoryView' product.ProductCategory.pk %}">{{ product.ProductCategory.CategoryName }}</a></li>
+                <li class="breadcrumb-item active">{{ product.ProductName }}</li>
+            </ol>
+        </nav>
+
+        <!-- 商品详情主体 -->
+        <div class="row g-4">
+            <!-- 商品图片 -->
+            <div class="col-lg-5">
+                <div class="detail-image-box">
+                    {% if product.ProductImage %}
+                    <img src="{{ product.ProductImage.url }}" alt="{{ product.ProductName }}" class="detail-image">
+                    {% else %}
+                    <div class="detail-placeholder">
+                        <i class="fas fa-image fa-5x"></i>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- 商品信息 -->
+            <div class="col-lg-7">
+                <div class="detail-info">
+                    <h1 class="detail-name">{{ product.ProductName }}</h1>
+                    <div class="detail-tags">
+                        {% for tag in product.ProductTags|split:"," %}
+                        {% if tag %}
+                        <span class="detail-tag">{{ tag }}</span>
+                        {% endif %}
+                        {% endfor %}
+                        {% if product.IsNew %}<span class="detail-tag tag-new">新品</span>{% endif %}
+                        {% if product.IsHot %}<span class="detail-tag tag-hot">热销</span>{% endif %}
+                        {% if product.IsOnSale %}<span class="detail-tag tag-sale">促销</span>{% endif %}
+                    </div>
+
+                    <div class="detail-price-box">
+                        <span class="detail-price">¥{{ product.ProductPrice }}</span>
+                        {% if product.ProductOriginalPrice and product.ProductOriginalPrice > product.ProductPrice %}
+                        <span class="detail-original-price">¥{{ product.ProductOriginalPrice }}</span>
+                        <span class="detail-discount">{{ product.DiscountPercent }}%</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="detail-meta">
+                        <div class="meta-item">
+                            <span class="meta-label">销量</span>
+                            <span class="meta-value">{{ product.ProductSales }}件</span>
+                        </div>
+                        <div class="meta-item">
+                            <span class="meta-label">库存</span>
+                            <span class="meta-value">{{ product.ProductStock }}件</span>
+                        </div>
+                        <div class="meta-item">
+                            <span class="meta-label">分类</span>
+                            <span class="meta-value"><a href="{% url 'Goods:CategoryView' product.ProductCategory.pk %}">{{ product.ProductCategory.CategoryName }}</a></span>
+                        </div>
+                    </div>
+
+                    <div class="detail-desc">
+                        <p>{{ product.ProductDesc }}</p>
+                    </div>
+
+                    <!-- 数量选择 -->
+                    <div class="detail-quantity">
+                        <span class="meta-label">数量</span>
+                        <div class="quantity-control">
+                            <button class="qty-btn" onclick="changeQty(-1)">-</button>
+                            <input type="number" id="qty-input" value="1" min="1" max="{{ product.ProductStock }}" class="qty-input">
+                            <button class="qty-btn" onclick="changeQty(1)">+</button>
+                        </div>
+                    </div>
+
+                    <!-- 操作按钮 -->
+                    <div class="detail-actions">
+                        <button class="btn btn-neon btn-lg flex-fill" onclick="addToCart({{ product.pk }})">
+                            <i class="fas fa-shopping-cart"></i> 加入购物车
+                        </button>
+                        <button class="btn btn-outline-neon btn-lg" onclick="buyNow({{ product.pk }})">
+                            <i class="fas fa-bolt"></i> 立即购买
+                        </button>
+                        <button class="btn btn-fav {% if is_favorited %}favorited{% endif %}" onclick="toggleFavorite({{ product.pk }})">
+                            <i class="fas fa-heart"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 商品详情/规格 -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <ul class="nav nav-tabs detail-tabs" role="tablist">
+                    <li class="nav-item">
+                        <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#detail-tab">商品详情</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#specs-tab">规格参数</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#reviews-tab">用户评价 ({{ reviews.count }})</button>
+                    </li>
+                </ul>
+                <div class="tab-content detail-tab-content">
+                    <div class="tab-pane fade show active" id="detail-tab">
+                        <div class="detail-content">
+                            {{ product.ProductDetail|linebreaksbr }}
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="specs-tab">
+                        <div class="specs-table">
+                            {% if product.ProductSpecs %}
+                            {% for key, value in product.ProductSpecs.items %}
+                            <div class="spec-row">
+                                <span class="spec-key">{{ key }}</span>
+                                <span class="spec-value">{{ value }}</span>
+                            </div>
+                            {% endfor %}
+                            {% else %}
+                            <p class="text-muted">暂无规格参数</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="reviews-tab">
+                        <!-- 评价列表 -->
+                        <div class="reviews-list">
+                            {% for review in reviews %}
+                            <div class="review-item">
+                                <div class="review-header">
+                                    <span class="review-user"><i class="fas fa-user-circle"></i> {{ review.ReviewUser.username }}</span>
+                                    <span class="review-rating">
+                                        {% for i in "12345" %}
+                                        <i class="fas fa-star {% if forloop.counter <= review.ReviewRating %}text-warning{% else %}text-muted{% endif %}"></i>
+                                        {% endfor %}
+                                    </span>
+                                    <span class="review-time">{{ review.ReviewTime|date:"Y-m-d H:i" }}</span>
+                                </div>
+                                <p class="review-content">{{ review.ReviewContent }}</p>
+                            </div>
+                            {% empty %}
+                            <p class="text-muted text-center py-4">暂无评价，快来抢沙发吧！</p>
+                            {% endfor %}
+                        </div>
+                        <!-- 发表评价 -->
+                        {% if user.is_authenticated %}
+                        <div class="review-form mt-4">
+                            <h5>发表评价</h5>
+                            <form id="review-form" onsubmit="submitReview(event, {{ product.pk }})">
+                                <div class="mb-3">
+                                    <label>评分</label>
+                                    <div class="star-rating">
+                                        {% for i in "54321" %}
+                                        <input type="radio" name="rating" value="{{ i }}" id="star{{ i }}" {% if forloop.first %}checked{% endif %}>
+                                        <label for="star{{ i }}"><i class="fas fa-star"></i></label>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <textarea name="content" class="form-control" rows="3" placeholder="分享你的使用体验..." required></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-neon">提交评价</button>
+                            </form>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 相关推荐 -->
+        {% if related_products %}
+        <div class="related-section mt-4">
+            <h3 class="section-title"><i class="fas fa-th"></i> 相关推荐</h3>
+            <div class="row g-4">
+                {% for product in related_products %}
+                <div class="col-6 col-md-3">
+                    {% include 'Goods/components/product_card.html' with product=product %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function changeQty(delta) {
+    const input = document.getElementById('qty-input');
+    let val = parseInt(input.value) + delta;
+    val = Math.max(1, Math.min(val, parseInt(input.max)));
+    input.value = val;
+}
+
+function addToCart(productId) {
+    const qty = document.getElementById('qty-input').value;
+    fetch(`/cart/add/${productId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'X-Requested-With': 'XMLHttpRequest',
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `quantity=${qty}`
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 'success') {
+            showToast(data.message, 'success');
+            // 更新购物车角标
+            var badge = document.querySelector('.cart-badge');
+            if (badge) {
+                badge.textContent = data.cart_count;
+            } else {
+                var cartLink = document.querySelector('.nav-link[href*="cart"]');
+                if (cartLink) {
+                    badge = document.createElement('span');
+                    badge.className = 'cart-badge';
+                    badge.textContent = data.cart_count;
+                    cartLink.appendChild(badge);
+                }
+            }
+        } else {
+            showToast(data.message || '请先登录', 'error');
+        }
+    })
+    .catch(function() { showToast('操作失败', 'error'); });
+}
+
+function buyNow(productId) {
+    const qty = document.getElementById('qty-input').value;
+    fetch(`/cart/add/${productId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'X-Requested-With': 'XMLHttpRequest',
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `quantity=${qty}`
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 'success') {
+            window.location.href = '/cart/';
+        }
+    });
+}
+
+function toggleFavorite(productId) {
+    fetch(`/favorite/${productId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'X-Requested-With': 'XMLHttpRequest',
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 'success') {
+            showToast(data.message, 'success');
+            const btn = document.querySelector('.btn-fav');
+            btn.classList.toggle('favorited');
+        } else {
+            showToast('请先登录', 'error');
+        }
+    });
+}
+
+function submitReview(e, productId) {
+    e.preventDefault();
+    const form = e.target;
+    const rating = form.querySelector('input[name="rating"]:checked').value;
+    const content = form.querySelector('textarea[name="content"]').value;
+
+    fetch(`/review/${productId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'X-Requested-With': 'XMLHttpRequest',
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `rating=${rating}&content=${encodeURIComponent(content)}`
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 'success') {
+            showToast('评价成功', 'success');
+            location.reload();
+        } else {
+            showToast(data.message, 'error');
+        }
+    });
+}
+</script>
+{% endblock %}

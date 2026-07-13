@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<section class="order-list-page">
+    <div class="container">
+        <nav aria-label="breadcrumb" class="mt-3">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'Goods:IndexView' %}">首页</a></li>
+                <li class="breadcrumb-item active">我的订单</li>
+            </ol>
+        </nav>
+
+        <h2 class="page-title"><i class="fas fa-list-alt"></i> 我的订单</h2>
+
+        {% if orders %}
+        {% for order in orders %}
+        <div class="order-list-card">
+            <div class="order-list-header">
+                <span class="order-no">订单号：{{ order.OrderNo }}</span>
+                <span class="order-time">{{ order.CreateTime|date:"Y-m-d H:i" }}</span>
+                <span class="badge 
+                    {% if order.OrderStatus == 'Pending' %}bg-warning
+                    {% elif order.OrderStatus == 'Paid' %}bg-info
+                    {% elif order.OrderStatus == 'Shipped' %}bg-primary
+                    {% elif order.OrderStatus == 'Completed' %}bg-success
+                    {% else %}bg-secondary{% endif %}">
+                    {{ order.get_OrderStatus_display }}
+                </span>
+            </div>
+            <div class="order-list-body">
+                {% for item in order.items.all %}
+                <div class="order-product-item">
+                    <div class="order-product-image">
+                        {% if item.ItemProductImage %}
+                        <img src="{{ item.ItemProductImage }}" alt="{{ item.ItemProductName }}">
+                        {% else %}
+                        <div class="cart-product-placeholder"><i class="fas fa-image"></i></div>
+                        {% endif %}
+                    </div>
+                    <div class="order-product-info">
+                        <span class="order-product-name">{{ item.ItemProductName }}</span>
+                        <span class="order-product-qty">x{{ item.ItemQuantity }}</span>
+                    </div>
+                    <div class="order-product-price">¥{{ item.ItemTotalPrice }}</div>
+                </div>
+                {% endfor %}
+            </div>
+            <div class="order-list-footer">
+                <span>共 {{ order.items.count }} 件商品，合计：<strong class="summary-price">¥{{ order.OrderTotalPrice }}</strong></span>
+                <div class="order-actions">
+                    <a href="{% url 'Order:OrderDetailView' order.OrderNo %}" class="btn btn-sm btn-outline-neon">查看详情</a>
+                    {% if order.OrderStatus == 'Pending' %}
+                    <a href="{% url 'Order:OrderCancelView' order.OrderNo %}" class="btn btn-sm btn-outline-danger" onclick="return confirm('确定取消订单？')">取消订单</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-box-open fa-4x text-muted mb-4"></i>
+            <h4 class="text-muted">暂无订单</h4>
+            <a href="{% url 'Goods:IndexView' %}" class="btn btn-neon mt-3">去购物</a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

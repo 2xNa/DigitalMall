@@ -1,0 +1,41 @@
+{% load goods_tags %}
+<!-- 商品卡片组件 -->
+<div class="product-card">
+    <a href="{% url 'Goods:ProductDetail' product.pk %}">
+        <div class="product-image">
+            {% if product.ProductImage %}
+            <img src="{{ product.ProductImage.url }}" alt="{{ product.ProductName }}" loading="lazy">
+            {% else %}
+            <div class="product-placeholder">
+                <i class="fas fa-image"></i>
+            </div>
+            {% endif %}
+            {% if badge %}
+            <span class="product-badge {{ badge_class }}">{{ badge }}</span>
+            {% endif %}
+            {% if product.IsOnSale %}
+            <span class="product-badge badge-sale">{{ product.DiscountPercent }}%</span>
+            {% endif %}
+        </div>
+    </a>
+    <div class="product-info">
+        <a href="{% url 'Goods:ProductDetail' product.pk %}" class="product-name">{{ product.ProductName }}</a>
+        <div class="product-tags">
+            {% for tag in product.ProductTags|split:"," %}
+            {% if tag %}
+            <span class="product-tag">{{ tag }}</span>
+            {% endif %}
+            {% endfor %}
+        </div>
+        <div class="product-price-row">
+            <span class="product-price">¥{{ product.ProductPrice }}</span>
+            {% if product.ProductOriginalPrice and product.ProductOriginalPrice > product.ProductPrice %}
+            <span class="product-original-price">¥{{ product.ProductOriginalPrice }}</span>
+            {% endif %}
+        </div>
+        <div class="product-meta">
+            <span><i class="fas fa-shopping-bag"></i> {{ product.ProductSales }}已售</span>
+            <span><i class="fas fa-star"></i> {{ product.reviews.count }}评价</span>
+        </div>
+    </div>
+</div>

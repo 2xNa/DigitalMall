@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load goods_tags %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<section class="category-page">
+    <div class="container">
+        <nav aria-label="breadcrumb" class="mt-3">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'Goods:IndexView' %}">首页</a></li>
+                {% if category %}
+                <li class="breadcrumb-item active">{{ category.CategoryName }}</li>
+                {% else %}
+                <li class="breadcrumb-item active">搜索结果</li>
+                {% endif %}
+            </ol>
+        </nav>
+
+        <div class="row g-4">
+            <!-- 侧边分类 -->
+            {% if category %}
+            <div class="col-lg-3">
+                <div class="sidebar-card">
+                    <h5><i class="fas fa-th-list"></i> 分类</h5>
+                    <ul class="category-list">
+                        {% for cat in categories %}
+                        <li class="{% if cat.pk == category.pk %}active{% endif %}">
+                            <a href="{% url 'Goods:CategoryView' cat.pk %}">
+                                <i class="{{ cat.CategoryIcon }}"></i> {{ cat.CategoryName }}
+                            </a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- 商品列表 -->
+            <div class="{% if category %}col-lg-9{% else %}col-12{% endif %}">
+                <!-- 分类标题 -->
+                {% if category %}
+                <div class="category-header">
+                    <h2>{{ category.CategoryName }}</h2>
+                    <p>{{ category.CategoryDesc }}</p>
+                </div>
+                {% else %}
+                <div class="category-header">
+                    <h2>搜索结果</h2>
+                    {% if keyword %}
+                    <p>搜索 "{{ keyword }}" 共找到 {{ products.count }} 个商品</p>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <!-- 排序栏 -->
+                <div class="sort-bar">
+                    <div class="sort-options">
+                        <a href="?{% if keyword %}q={{ keyword }}&{% endif %}sort=default" class="sort-btn {% if sort == 'default' %}active{% endif %}">默认</a>
+                        <a href="?{% if keyword %}q={{ keyword }}&{% endif %}sort=price_asc" class="sort-btn {% if sort == 'price_asc' %}active{% endif %}">价格↑</a>
+                        <a href="?{% if keyword %}q={{ keyword }}&{% endif %}sort=price_desc" class="sort-btn {% if sort == 'price_desc' %}active{% endif %}">价格↓</a>
+                        <a href="?{% if keyword %}q={{ keyword }}&{% endif %}sort=sales" class="sort-btn {% if sort == 'sales' %}active{% endif %}">销量</a>
+                        <a href="?{% if keyword %}q={{ keyword }}&{% endif %}sort=new" class="sort-btn {% if sort == 'new' %}active{% endif %}">最新</a>
+                    </div>
+                    <span class="text-muted">共 {{ products.count }} 件商品</span>
+                </div>
+
+                <!-- 商品网格 -->
+                <div class="row g-4">
+                    {% for product in products %}
+                    <div class="col-6 col-md-4 col-lg-3">
+                        {% include 'Goods/components/product_card.html' with product=product %}
+                    </div>
+                    {% empty %}
+                    <div class="col-12 text-center py-5">
+                        <i class="fas fa-box-open fa-4x text-muted mb-4"></i>
+                        <h4 class="text-muted">暂无商品</h4>
+                        <a href="{% url 'Goods:IndexView' %}" class="btn btn-neon mt-3">返回首页</a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<section class="profile-page">
+    <div class="container">
+        <nav aria-label="breadcrumb" class="mt-3">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'Goods:IndexView' %}">首页</a></li>
+                <li class="breadcrumb-item active">个人中心</li>
+            </ol>
+        </nav>
+
+        <div class="row g-4">
+            <!-- 用户信息卡片 -->
+            <div class="col-lg-4">
+                <div class="profile-card">
+                    <div class="profile-avatar">
+                        {% if user.profile.ProfileAvatar %}
+                        <img src="{{ user.profile.ProfileAvatar.url }}" alt="{{ user.username }}">
+                        {% else %}
+                        <div class="avatar-placeholder"><i class="fas fa-user fa-3x"></i></div>
+                        {% endif %}
+                    </div>
+                    <h4>{{ user.username }}</h4>
+                    <p class="text-muted">{{ user.email }}</p>
+                    <div class="profile-stats">
+                        <div class="stat-item">
+                            <span class="stat-value">{{ favorite_count }}</span>
+                            <span class="stat-label">收藏</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">{{ order_count }}</span>
+                            <span class="stat-label">订单</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 修改信息 -->
+                <div class="profile-edit-card mt-3">
+                    <h5><i class="fas fa-edit"></i> 修改信息</h5>
+                    <form method="post" action="{% url 'Users:UpdateProfile' %}" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label">手机号</label>
+                            <input type="tel" name="phone" class="form-control" value="{{ user.profile.ProfilePhone }}">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">收货地址</label>
+                            <input type="text" name="address" class="form-control" value="{{ user.profile.ProfileAddress }}">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">性别</label>
+                            <select name="gender" class="form-select">
+                                <option value="Male" {% if user.profile.ProfileGender == 'Male' %}selected{% endif %}>男</option>
+                                <option value="Female" {% if user.profile.ProfileGender == 'Female' %}selected{% endif %}>女</option>
+                                <option value="Other" {% if user.profile.ProfileGender == 'Other' %}selected{% endif %}>保密</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-neon w-100">保存</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- 右侧内容 -->
+            <div class="col-lg-8">
+                <div class="profile-menu">
+                    <a href="{% url 'Users:UserProfileView' %}" class="profile-menu-item active">
+                        <i class="fas fa-user"></i> 个人信息
+                    </a>
+                    <a href="{% url 'Order:OrderListView' %}" class="profile-menu-item">
+                        <i class="fas fa-list-alt"></i> 我的订单
+                    </a>
+                    <a href="{% url 'Users:FavoriteListView' %}" class="profile-menu-item">
+                        <i class="fas fa-heart"></i> 我的收藏
+                    </a>
+                    <a href="{% url 'Users:BrowsingHistoryView' %}" class="profile-menu-item">
+                        <i class="fas fa-history"></i> 浏览历史
+                    </a>
+                </div>
+
+                <!-- 最近订单 -->
+                <div class="profile-section mt-3">
+                    <h5><i class="fas fa-clock"></i> 最近订单</h5>
+                    {% if recent_orders %}
+                    {% for order in recent_orders %}
+                    <div class="order-list-card mb-3">
+                        <div class="order-list-header">
+                            <span class="order-no">{{ order.OrderNo }}</span>
+                            <span class="badge 
+                                {% if order.OrderStatus == 'Pending' %}bg-warning
+                                {% elif order.OrderStatus == 'Paid' %}bg-info
+                                {% elif order.OrderStatus == 'Completed' %}bg-success
+                                {% else %}bg-secondary{% endif %}">
+                                {{ order.get_OrderStatus_display }}
+                            </span>
+                        </div>
+                        <div class="order-list-footer">
+                            <span>合计：<strong>¥{{ order.OrderTotalPrice }}</strong></span>
+                            <a href="{% url 'Order:OrderDetailView' order.OrderNo %}" class="btn btn-sm btn-outline-neon">查看</a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <p class="text-muted">暂无订单</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

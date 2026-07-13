@@ -1,0 +1,182 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load goods_tags %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<section class="cart-page">
+    <div class="container">
+        <nav aria-label="breadcrumb" class="mt-3">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'Goods:IndexView' %}">首页</a></li>
+                <li class="breadcrumb-item active">购物车</li>
+            </ol>
+        </nav>
+
+        <h2 class="page-title"><i class="fas fa-shopping-cart"></i> 我的购物车</h2>
+
+        {% if cart_items %}
+        <div class="cart-container">
+            <div class="cart-header d-none d-md-flex">
+                <div class="cart-col-check">
+                    <input type="checkbox" id="select-all" checked>
+                </div>
+                <div class="cart-col-product">商品信息</div>
+                <div class="cart-col-price">单价</div>
+                <div class="cart-col-qty">数量</div>
+                <div class="cart-col-total">小计</div>
+                <div class="cart-col-action">操作</div>
+            </div>
+            <div id="cart-items">
+                {% for item in cart_items %}
+                <div class="cart-item" data-id="{{ item.pk }}">
+                    <div class="cart-col-check">
+                        <input type="checkbox" class="item-check" data-id="{{ item.pk }}" {% if item.CartIsSelected %}checked{% endif %}>
+                    </div>
+                    <div class="cart-col-product d-flex align-items-center">
+                        <div class="cart-product-image">
+                            {% if item.CartProduct.ProductImage %}
+                            <img src="{{ item.CartProduct.ProductImage.url }}" alt="{{ item.CartProduct.ProductName }}">
+                            {% else %}
+                            <div class="cart-product-placeholder"><i class="fas fa-image"></i></div>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <a href="{% url 'Goods:ProductDetail' item.CartProduct.pk %}" class="cart-product-name">{{ item.CartProduct.ProductName }}</a>
+                            {% with tags=item.CartProduct.ProductTags|split:"," %}
+                            {% if tags.0 %}
+                            <span class="cart-product-tag">{{ tags.0 }}</span>
+                            {% endif %}
+                            {% endwith %}
+                        </div>
+                    </div>
+                    <div class="cart-col-price cart-item-price">¥{{ item.CartProduct.ProductPrice }}</div>
+                    <div class="cart-col-qty">
+                        <div class="cart-qty-control">
+                            <button class="cart-qty-btn qty-minus" data-id="{{ item.pk }}">-</button>
+                            <span class="cart-qty-num">{{ item.CartQuantity }}</span>
+                            <button class="cart-qty-btn qty-plus" data-id="{{ item.pk }}">+</button>
+                        </div>
+                    </div>
+                    <div class="cart-col-total cart-item-total">¥{{ item.TotalPrice|floatformat:2 }}</div>
+                    <div class="cart-col-action">
+                        <button class="cart-remove-btn" data-id="{{ item.pk }}"><i class="fas fa-trash-alt"></i></button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <div class="cart-footer">
+                <div class="cart-total-info">
+                    <span>已选 <span id="selected-count">{{ cart_items|length }}</span> 件，合计：</span>
+                    <span class="summary-price" id="cart-total">¥{{ total_price|floatformat:2 }}</span>
+                </div>
+                <a href="{% url 'Order:OrderCreateView' %}" class="btn btn-neon btn-lg">
+                    <i class="fas fa-lock"></i> 去结算
+                </a>
+            </div>
+        </div>
+        {% else %}
+        <div class="cart-empty">
+            <i class="fas fa-shopping-cart"></i>
+            <h4 class="text-muted">购物车是空的</h4>
+            <p class="text-muted">快去挑选心仪的数码产品吧！</p>
+            <a href="{% url 'Goods:IndexView' %}" class="btn btn-neon mt-3">去购物</a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// 切换选中
+document.querySelectorAll('.item-check').forEach(cb => {
+    cb.addEventListener('change', function() {
+        const id = this.dataset.id;
+        fetch(`/cart/toggle/${id}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'X-Requested-With': 'XMLHttpRequest',
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                document.getElementById('cart-total').textContent = '¥' + data.total_price.toFixed(2);
+            }
+        });
+    });
+});
+
+// 数量减
+document.querySelectorAll('.qty-minus').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const id = this.dataset.id;
+        const row = this.closest('.cart-item');
+        const numSpan = row.querySelector('.cart-qty-num');
+        let qty = parseInt(numSpan.textContent);
+        if (qty > 1) {
+            qty--;
+            updateQty(id, qty, row);
+        }
+    });
+});
+
+// 数量加
+document.querySelectorAll('.qty-plus').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const id = this.dataset.id;
+        const row = this.closest('.cart-item');
+        const numSpan = row.querySelector('.cart-qty-num');
+        let qty = parseInt(numSpan.textContent);
+        if (qty < 99) {
+            qty++;
+            updateQty(id, qty, row);
+        }
+    });
+});
+
+function updateQty(id, qty, row) {
+    fetch(`/cart/update/${id}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'X-Requested-With': 'XMLHttpRequest',
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `quantity=${qty}`
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 'success') {
+            row.querySelector('.cart-qty-num').textContent = qty;
+            row.querySelector('.cart-item-total').textContent = '¥' + data.total_price.toFixed(2);
+        }
+    });
+}
+
+// 删除
+document.querySelectorAll('.cart-remove-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const id = this.dataset.id;
+        if (confirm('确定要移除此商品？')) {
+            fetch(`/cart/remove/${id}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'X-Requested-With': 'XMLHttpRequest',
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    location.reload();
+                }
+            });
+        }
+    });
+});
+</script>
+{% endblock %}
